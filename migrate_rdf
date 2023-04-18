@@ -1,0 +1,73 @@
+#Script to migrate rdf files
+. EBS_ENV_FILE #### Source your EBS env file here
+
+echo "###### You choose to migrate RDf files in PROD env"
+scr_log=$LOG_HOME/reports_migr_op_xbol.log;export scr_log
+find_log=$LOG_HOME/report_find_xbol.log;export find_log
+find_log2=$LOG_HOME/report_find2_xbol.log;export find_log2
+usr_nme=`whoami`; export usr_nme
+hstnme=`hostname`; export hstnme
+find_log=$LOG_HOME/reports_find_xbol.log;export find_log
+
+
+#echo $usr_nme
+#echo $hstnme
+name_conv=`echo $usr_nme|tr 'a-z' 'A-Z'`;export name_conv
+#echo "User Name is : $name_conv"
+echo "User $name_conv has logged in to $hstnme at $dateis" >> $scr_log
+
+echo -e "Enter the file name : \c"
+read fle_name
+if [ "$fle_name" = "" ]; then
+echo "You entered NULL Value for filename, please enter a valid file name. Exiting from script !!!!"
+echo "User entered NULL Value for filename, exiting from script !!!! - Date: $dateis" >> $scr_log
+echo -e "\n" >> $scr_log
+exit;
+else
+echo "File name you entered is $fle_name"
+echo "User $name_conv has typed the filename $fle_name" >> $scr_log
+#echo "\n" >> $scr_log
+cd /home/applusr/MIGRATION/REPORTS/
+echo "Finding file $fle_name from /home/applusr/MIGRATION/REPORTS - Date: $dateis" >> $scr_log
+find . -name "$fle_name" > $find_log
+F15M="cut -d "/" -f2 $find_log";export F15M
+F16M=`cat $find_log|wc -l`;export F16M
+if [ "$F16M" -gt 0 ]; then
+echo "File $fle_name, found in /home/applusr/MIGRATION/REPORTS - Date: $dateis, file exists !!!!" >> $scr_log
+echo "Finding file $fle_name from "$"XBOL_TOP/reports/US - Date: $dateis" >> $scr_log
+find $XBOL_TOP/reports/US -name "$fle_name" > $find_log2
+F17M=`cut -d "/" -f12 $find_log2`;export F17M
+#echo "File name ******* $F17M"
+F18M=`cat $find_log2|wc -l`;export F18M
+if [ $F18M -gt 0 ]; then
+echo "File $fle_name, found in "$"XBOL_TOP/reports/US - Date: $dateis, file exists !!!! in XBOL_TOP" >> $scr_log
+cp $XBOL_TOP/reports/US/$fle_name $XBOL_TOP/reports/US/"$fle_name"_`date +%d%b%y_%H%M%S`
+echo "Backing up $fle_name in "$"XBOL_TOP/reports/US" >> $scr_log
+mv $fle_name $XBOL_TOP/reports/US
+echo "File $fle_name has been moved to "$"XBOL_TOP/reports/US Date - $dateis"
+echo "File $fle_name has been moved to "$"XBOL_TOP/reports/US Date - $dateis" >> $scr_log
+echo -e "\n" >> $scr_log
+else
+echo "This file is not found in "$"XBOL_TOP/reports/US, please confirm if this is a new file to be migrated (Y/N) :\c"
+echo "This file is not found in "$"XBOL_TOP/reports/US, might be a new file. Waiting for User confirmation(Y/N)" >> $scr_log
+read confim
+if [ $confim = 'Y' ]; then
+echo "User entered $confim Date - $dateis"
+echo "User entered $confim, migrating a new file to XBOL_TOP Date - $dateis" >> $scr_log
+mv $fle_name $XBOL_TOP/reports/US
+echo "File $fle_name has been moved to "$"XBOL_TOP/reports/US Date - $dateis" >> $scr_log
+echo -e "\n" >> $scr_log
+echo "File $fle_name has been moved to "$"XBOL_TOP/reports/US"
+else
+echo "User entered N,(please review the file name, the file you entered doesnot exist in XBOL_TOP) exiting from script Date - $dateis !!!!"
+echo "User entered N,(the file $fle_name doesnot exist in XBOL_TOP,  might be a new file) exiting from script Date - $dateis !!!!" >> $scr_log
+echo -e "\n" >> $scr_log
+exit;
+fi
+fi
+else
+echo "The file $fle_name does not exist in /home/applusr/MIGRATION/REPORTS - Date: $dateis, pls verify the file name"
+echo "The file $fle_name does not exist in /home/applusr/MIGRATION/REPORTS - Date: $dateis" >> $scr_log
+echo -e "\n" >> $scr_log
+fi
+fi
